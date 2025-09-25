@@ -1,0 +1,2 @@
+# vizreload
+automatizando viz
