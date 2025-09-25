@@ -1,0 +1,11 @@
+main {
+    padding-top: 0px; /* para que no tape el navbar fijo */
+    padding-bottom: 60px;
+    }
+h1, h2, h3 {
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    }
+table {
+    margin-top: 1rem;
+    }

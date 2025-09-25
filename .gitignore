@@ -1,0 +1,9 @@
+# Ignorar credenciales
+config/conexion.php
+
+# Ignorar dependencias de Composer
+/vendor/
+
+# Ignorar archivos temporales o locales
+*.log
+*.env
