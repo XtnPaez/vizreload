@@ -4,41 +4,79 @@ automatizando viz
 ## Flujo de datos
                 
 [PostgreSQL - Tabla capas]
+
+
     │
+
     │ catalogo dinámico (metadatos)
+
     ▼
+
 [catalogo.php]  ------------------> Fetch JSON
+
     │
+
     │ JSON dinámico de capas activas
+
     ▼
+
 [mapa.js - JS dinámico]
+
     │
+
     ├─ Construye sidebar
+
+
     │   ├─ Agrupa por 'grupo' (accordion)
+
     │   └─ Crea checkbox/botón para cada capa
+
     │
+
     ├─ Usuario selecciona una capa
+
     │       │
+
     │       ▼
+
     │   Fetch: api.php?layer=id_capa
+
     │       │
+
     │       ▼
+
     │   [api.php] --> ejecuta sql_query desde Postgres
+
     │       │
+
     │       ▼
+
     │   GeoJSON dinámico
+
     │
+
     └─ JS recibe GeoJSON
+
             │
+
             ▼
+
         L.geoJSON(geojson, {
+
             style: color,
+
             onEachFeature: popup_campos
+
         }).addTo(map)
+
             │
+
             ▼
+
         Capa visible en el mapa
+
             │
+
             └─ Si usuario deselecciona → map.removeLayer()
 
 
