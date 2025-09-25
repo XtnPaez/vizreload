@@ -1,16 +1,22 @@
+/* --------------------
+   Layout general
+-------------------- */
 body, html {
   height: 100%;
   margin: 0;
-  padding-top: 56px; /* navbar fixed height */
-  padding-bottom: 40px; /* footer fixed height */
+  padding-top: 56px;   /* altura navbar fija */
+  padding-bottom: 40px; /* altura footer fijo */
   font-family: 'Montserrat', sans-serif;
   background-color: #f4f6f8;
   color: #2c3e50;
 }
-/* Sidebar */
+
+/* --------------------
+   Sidebar
+-------------------- */
 #sidebar {
   width: 300px;
-  height: calc(100vh - 96px); /* navbar + footer */
+  height: calc(100vh - 96px); /* altura total - navbar - footer */
   position: fixed;
   top: 56px;
   left: 0;
@@ -20,19 +26,26 @@ body, html {
   border-right: 1px solid #ddd;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
   border-radius: 0 12px 12px 0;
+  z-index: 1000; /* aseguramos que quede arriba del mapa */
 }
-/* Mapa */
+
+/* --------------------
+   Mapa
+-------------------- */
 #map {
   position: fixed;
   top: 56px;
   left: 300px;
   right: 0;
   bottom: 40px;
+  height: calc(100vh - 96px); /* altura total - navbar - footer */
   width: auto;
-  height: auto;
   z-index: 0;
 }
-/* Navbar */
+
+/* --------------------
+   Navbar
+-------------------- */
 .navbar {
   background-color: #34495e !important;
   color: #ffffff;
@@ -43,7 +56,10 @@ body, html {
 .navbar-nav .nav-link:hover {
   color: #ecf0f1 !important;
 }
-/* Footer */
+
+/* --------------------
+   Footer
+-------------------- */
 footer {
   position: fixed;
   bottom: 0;
@@ -57,7 +73,10 @@ footer {
   align-items: center;
   font-size: 0.9rem;
 }
-/* Botones */
+
+/* --------------------
+   Botones
+-------------------- */
 button, .btn {
   background-color: #34495e;
   color: #ffffff;
@@ -70,7 +89,14 @@ button, .btn {
 button:hover, .btn:hover {
   background-color: #2c3e50;
 }
-/* Formularios */
+button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* --------------------
+   Formularios
+-------------------- */
 input[type="text"],
 input[type="password"],
 select,
@@ -83,7 +109,10 @@ textarea {
   box-sizing: border-box;
   font-size: 1rem;
 }
-/* Tarjetas o paneles internos */
+
+/* --------------------
+   Tarjetas o paneles internos
+-------------------- */
 .card, .panel {
   background: #ffffff;
   border: 1px solid #ddd;
@@ -92,7 +121,29 @@ textarea {
   padding: 1rem;
   margin-bottom: 1rem;
 }
-button:focus {
-    outline: none !important;
-    box-shadow: none !important;
+
+/* --------------------
+   Estilos acordeones
+-------------------- */
+.accordion-button {
+  background-color: #34495e;
+  color: #ffffff;
+  font-weight: bold;
+}
+.accordion-button:not(.collapsed) {
+  background-color: #2c3e50;
+  color: #ffffff;
+}
+.accordion-body {
+  padding: 0.75rem 1rem;
+}
+
+/* Leyenda dinámica */
+.leaflet-control.legend {
+    background: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    font-size: 14px;
+    line-height: 18px;
 }
