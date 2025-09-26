@@ -1,3 +1,3 @@
 <footer class="custom-footer text-white text-center py-2 fixed-bottom">
-  <div><b>SIEMPRO</b> | Informática de datos | Información Social</div>
+  <div><b>Ministerio de Capital Humano | CNCPS | SIEMPRO</b></div>
 </footer>
