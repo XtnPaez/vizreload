@@ -3,15 +3,15 @@
 // -----------------------
 var argenmap = L.tileLayer(
     'https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/capabaseargenmap@EPSG%3A3857@png/{z}/{x}/{-y}.png',
-    { minZoom: 1, maxZoom: 20, attribution: '© IGN Argentina - Argenmap || SIEMPRO | Informática de Datos | Información Social' }
+    { minZoom: 1, maxZoom: 20, attribution: '© IGN Argentina - Argenmap || Ministerio de Capital Humano || CNCPS || SIEMPRO' }
 );
 var argenmap_gris = L.tileLayer(
     'https://wms.ign.gob.ar/geoserver/gwc/service/tms/1.0.0/mapabase_gris@EPSG%3A3857@png/{z}/{x}/{-y}.png',
-    { minZoom: 1, maxZoom: 20, attribution: '© IGN Argentina - Argenmap Base Gris || SIEMPRO | Informática de Datos | Información Social' }
+    { minZoom: 1, maxZoom: 20, attribution: '© IGN Argentina - Argenmap Base Gris || Ministerio de Capital Humano || CNCPS || SIEMPRO' }
 );
 var osm = L.tileLayer(
     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors || SIEMPRO | Informática de Datos | Información Social' }
+    { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors || Ministerio de Capital Humano || CNCPS || SIEMPRO' }
 );
 
 // -----------------------
@@ -145,9 +145,14 @@ function agregarCapa(capa) {
             const geojsonLayer = L.geoJSON(data, {
                 style: feature => {
                     if (capa.tipo === 'poligono') {
+                        // Diferenciar borde según el nombre de la capa
+                        let weight = 1; // default para polígonos
+                        if (capa.nombre.toLowerCase().includes('provincia')) {
+                            weight = 4; // borde más ancho para provincias
+                        }
                         return {
                             color: capa.color,       // línea
-                            weight: 2,
+                            weight: weight,
                             fillColor: 'transparent', // fondo transparente
                             fillOpacity: 0
                         };
@@ -157,9 +162,9 @@ function agregarCapa(capa) {
                 pointToLayer: (feature, latlng) => {
                     if (capa.tipo === 'puntos') {
                         return L.circleMarker(latlng, {
-                            radius: 4,
+                            radius: 4,         // puntito más chico
                             fillColor: capa.color,
-                            color: null,
+                            color: null,       // sin borde
                             weight: 0,
                             opacity: 1,
                             fillOpacity: 0.8
@@ -173,10 +178,12 @@ function agregarCapa(capa) {
                 }
             }).addTo(map);
 
-            geojsonLayer.capaInfo = capa; // info para leyenda
+            // Guardar referencia de la capa para leyenda y control
+            geojsonLayer.capaInfo = capa;
             mapLayers[capa.id] = geojsonLayer;
 
-            legend.update(); // actualizar leyenda
+            // Actualizar leyenda
+            legend.update();
         })
         .catch(err => console.error('Error cargando capa:', capa.id, err));
 }
