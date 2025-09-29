@@ -23,7 +23,18 @@ var map = L.map('map', {
     layers: [argenmap]
 });
 
+// -----------------------
+// Crear panes para control de orden
+// -----------------------
+map.createPane('limites');
+map.getPane('limites').style.zIndex = 200;
+
+map.createPane('capasActivas');
+map.getPane('capasActivas').style.zIndex = 400;
+
+// -----------------------
 // Control de capas base
+// -----------------------
 var baseMaps = { "Argenmap": argenmap, "Argenmap Gris": argenmap_gris, "OpenStreetMap": osm };
 L.control.layers(baseMaps).addTo(map);
 
@@ -31,21 +42,6 @@ L.control.layers(baseMaps).addTo(map);
 // Objeto para guardar capas activas
 // -----------------------
 var mapLayers = {};
-
-// -----------------------
-// Función para construir popups
-// -----------------------
-function buildPopup(feature, capa) {
-    if (!capa.popup_campos || capa.popup_campos.length === 0) return '';
-    let content = '';
-    capa.popup_campos.forEach(pc => {
-        if (feature.properties[pc] !== undefined) {
-            const label = capa.popup_labels && capa.popup_labels[pc] ? capa.popup_labels[pc] : pc;
-            content += `<b>${label}:</b> ${feature.properties[pc]}<br>`;
-        }
-    });
-    return content;
-}
 
 // -----------------------
 // Función para construir sidebar
@@ -121,50 +117,66 @@ function construirSidebar(capas) {
 }
 
 // -----------------------
-// Función para construir el contenido del popup
+// Función para construir popups con título de capa
 // -----------------------
 function buildPopup(feature, capa) {
-    if (!feature.properties || !capa.popup_campos) return '';
-    let popupContent = '';
-    capa.popup_campos.forEach(campo => {
-        if (feature.properties[campo] !== undefined) {
-            const label = (capa.popup_labels && capa.popup_labels[campo]) ? capa.popup_labels[campo] : campo;
-            popupContent += `<b>${label}:</b> ${feature.properties[campo]}<br>`;
-        }
-    });
-    return popupContent;
+    let content = `
+        <div style="
+            font-weight: bold;
+            font-size: 16px;
+            color: #ffffff;
+            background-color: #34495e;
+            padding: 4px 6px;
+            border-radius: 4px 4px 0 0;
+            margin-bottom: 4px;
+        ">
+            ${capa.nombre}
+        </div>
+    `;
+
+    if (feature.properties && capa.popup_campos && capa.popup_campos.length > 0) {
+        capa.popup_campos.forEach(pc => {
+            if (feature.properties[pc] !== undefined) {
+                const label = capa.popup_labels && capa.popup_labels[pc] ? capa.popup_labels[pc] : pc;
+                content += `<b>${label}:</b> ${feature.properties[pc]}<br>`;
+            }
+        });
+    } else {
+        content += '<i>No hay datos disponibles</i>';
+    }
+
+    return content;
 }
 
 // -----------------------
-// Función para agregar capa al mapa
+// Función para agregar capa al mapa con pane según tipo
 // -----------------------
 function agregarCapa(capa) {
     fetch('../api/api.php?layer=' + encodeURIComponent(capa.id))
         .then(res => res.json())
         .then(data => {
+            const paneName = (capa.tipo === 'poligono' && capa.nombre.toLowerCase().includes('provincia')) ? 'limites' : 'capasActivas';
+
             const geojsonLayer = L.geoJSON(data, {
                 style: feature => {
                     if (capa.tipo === 'poligono') {
-                        // Diferenciar borde según el nombre de la capa
-                        let weight = 1; // default para polígonos
-                        if (capa.nombre.toLowerCase().includes('provincia')) {
-                            weight = 4; // borde más ancho para provincias
-                        }
+                        let weight = 1;
+                        if (capa.nombre.toLowerCase().includes('provincia')) weight = 4;
                         return {
-                            color: capa.color,       // línea
+                            color: capa.color,
                             weight: weight,
-                            fillColor: 'transparent', // fondo transparente
+                            fillColor: 'transparent',
                             fillOpacity: 0
                         };
                     }
-                    return {}; // puntos no necesitan style
+                    return {};
                 },
                 pointToLayer: (feature, latlng) => {
                     if (capa.tipo === 'puntos') {
                         return L.circleMarker(latlng, {
-                            radius: 4,         // puntito más chico
+                            radius: 4,
                             fillColor: capa.color,
-                            color: null,       // sin borde
+                            color: null,
                             weight: 0,
                             opacity: 1,
                             fillOpacity: 0.8
@@ -175,30 +187,31 @@ function agregarCapa(capa) {
                 onEachFeature: (feature, layer) => {
                     const popupContent = buildPopup(feature, capa);
                     if (popupContent) layer.bindPopup(popupContent);
-                }
+                },
+                pane: paneName
             }).addTo(map);
 
-            // Guardar referencia de la capa para leyenda y control
             geojsonLayer.capaInfo = capa;
             mapLayers[capa.id] = geojsonLayer;
 
-            // Actualizar leyenda
+            // Si es capa de límites, enviarla al fondo
+            if (paneName === 'limites') geojsonLayer.bringToBack();
+
             legend.update();
         })
         .catch(err => console.error('Error cargando capa:', capa.id, err));
 }
 
 // -----------------------
-// Función para quitar capa del mapa
+// Función para quitar capa
 // -----------------------
 function quitarCapa(id) {
     if (mapLayers[id]) {
         map.removeLayer(mapLayers[id]);
         delete mapLayers[id];
-        legend.update(); // actualizar leyenda
+        legend.update();
     }
 }
-
 
 // -----------------------
 // Control de leyenda

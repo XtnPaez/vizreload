@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
   <div class="container-fluid d-flex justify-content-between align-items-center">
      <!-- Texto centrado -->
-    <div class="text-center flex-grow-1">
+    <div class="text-left flex-grow-1">
       <span class="navbar-text fw-bold">
         EFPI - Estrategia Federal de Primera Infancia
       </span>
