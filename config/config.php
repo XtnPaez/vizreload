@@ -1,2 +1,2 @@
 <?php
-define('BASE_URL', '/viz/public/');
+define('BASE_URL', '/vizreload/public/');

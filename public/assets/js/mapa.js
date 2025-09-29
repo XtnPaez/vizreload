@@ -26,8 +26,11 @@ var map = L.map('map', {
 // -----------------------
 // Crear panes para control de orden
 // -----------------------
-map.createPane('limites');
-map.getPane('limites').style.zIndex = 200;
+map.createPane('limites_provincias');
+map.getPane('limites_provincias').style.zIndex = 200;
+
+map.createPane('limites_departamentos');
+map.getPane('limites_departamentos').style.zIndex = 300;
 
 map.createPane('capasActivas');
 map.getPane('capasActivas').style.zIndex = 400;
@@ -50,13 +53,11 @@ function construirSidebar(capas) {
     const accordion = document.getElementById('accordionCapas');
     const grupos = {};
 
-    // Agrupar capas por grupo
     capas.forEach(capa => {
         if (!grupos[capa.grupo]) grupos[capa.grupo] = [];
         grupos[capa.grupo].push(capa);
     });
 
-    // Limpiar sidebar
     accordion.innerHTML = '';
 
     Object.keys(grupos).forEach((grupo, idx) => {
@@ -149,19 +150,26 @@ function buildPopup(feature, capa) {
 }
 
 // -----------------------
-// Función para agregar capa al mapa con pane según tipo
+// Función para agregar capa al mapa
 // -----------------------
 function agregarCapa(capa) {
     fetch('../api/api.php?layer=' + encodeURIComponent(capa.id))
         .then(res => res.json())
         .then(data => {
-            const paneName = (capa.tipo === 'poligono' && capa.nombre.toLowerCase().includes('provincia')) ? 'limites' : 'capasActivas';
+            let paneName = 'capasActivas';
+
+            if (capa.tipo === 'poligono') {
+                if (capa.nombre.toLowerCase().includes('provincia')) paneName = 'limites_provincias';
+                else if (capa.nombre.toLowerCase().includes('departamento')) paneName = 'limites_departamentos';
+            }
 
             const geojsonLayer = L.geoJSON(data, {
+                pane: paneName,
                 style: feature => {
                     if (capa.tipo === 'poligono') {
                         let weight = 1;
                         if (capa.nombre.toLowerCase().includes('provincia')) weight = 4;
+                        if (capa.nombre.toLowerCase().includes('departamento')) weight = 2;
                         return {
                             color: capa.color,
                             weight: weight,
@@ -187,15 +195,14 @@ function agregarCapa(capa) {
                 onEachFeature: (feature, layer) => {
                     const popupContent = buildPopup(feature, capa);
                     if (popupContent) layer.bindPopup(popupContent);
-                },
-                pane: paneName
+                }
             }).addTo(map);
 
             geojsonLayer.capaInfo = capa;
             mapLayers[capa.id] = geojsonLayer;
 
-            // Si es capa de límites, enviarla al fondo
-            if (paneName === 'limites') geojsonLayer.bringToBack();
+            // Limites siempre al fondo de su pane
+            geojsonLayer.bringToBack();
 
             legend.update();
         })
