@@ -47,73 +47,96 @@ L.control.layers(baseMaps).addTo(map);
 var mapLayers = {};
 
 // -----------------------
+// Helper: Crear item accordion
+// -----------------------
+function crearAccordionItem(grupo, idx, capas, parentId) {
+    const item = document.createElement('div');
+    item.className = 'accordion-item';
+
+    const header = document.createElement('h2');
+    header.className = 'accordion-header';
+    header.id = `heading-${parentId}-${idx}`;
+
+    const button = document.createElement('button');
+    button.className = 'accordion-button collapsed fw-bold text-white';
+    button.type = 'button';
+    button.setAttribute('data-bs-toggle', 'collapse');
+    button.setAttribute('data-bs-target', `#collapse-${parentId}-${idx}`);
+    button.setAttribute('aria-expanded', 'false');
+    button.setAttribute('aria-controls', `collapse-${parentId}-${idx}`);
+    button.style.backgroundColor = '#34495e';
+    button.textContent = grupo;
+
+    header.appendChild(button);
+    item.appendChild(header);
+
+    const collapse = document.createElement('div');
+    collapse.id = `collapse-${parentId}-${idx}`;
+    collapse.className = 'accordion-collapse collapse';
+    collapse.setAttribute('aria-labelledby', `heading-${parentId}-${idx}`);
+    collapse.setAttribute('data-bs-parent', `#${parentId}`);
+
+    const body = document.createElement('div');
+    body.className = 'accordion-body';
+
+    capas.forEach(capa => {
+        const label = document.createElement('label');
+        label.style.display = 'block';
+        label.style.cursor = 'pointer';
+        label.style.marginBottom = '5px';
+
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = capa.id;
+        checkbox.style.marginRight = '5px';
+
+        checkbox.addEventListener('change', function() {
+            if (this.checked) agregarCapa(capa);
+            else quitarCapa(capa.id);
+        });
+
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(capa.nombre));
+        body.appendChild(label);
+    });
+
+    collapse.appendChild(body);
+    item.appendChild(collapse);
+
+    return item;
+}
+
+// -----------------------
 // Función para construir sidebar
 // -----------------------
 function construirSidebar(capas) {
-    const accordion = document.getElementById('accordionCapas');
-    const grupos = {};
+    const accordionCapas = document.getElementById('accordionCapas');
+    const accordionLimites = document.getElementById('accordionLimites');
+
+    const gruposNormales = {};
+    const gruposLimites = {};
 
     capas.forEach(capa => {
-        if (!grupos[capa.grupo]) grupos[capa.grupo] = [];
-        grupos[capa.grupo].push(capa);
+        if (capa.grupo.toLowerCase() === 'límites') {
+            if (!gruposLimites[capa.grupo]) gruposLimites[capa.grupo] = [];
+            gruposLimites[capa.grupo].push(capa);
+        } else {
+            if (!gruposNormales[capa.grupo]) gruposNormales[capa.grupo] = [];
+            gruposNormales[capa.grupo].push(capa);
+        }
     });
 
-    accordion.innerHTML = '';
+    accordionCapas.innerHTML = '';
+    accordionLimites.innerHTML = '';
 
-    Object.keys(grupos).forEach((grupo, idx) => {
-        const item = document.createElement('div');
-        item.className = 'accordion-item';
+    // Construir acordeón normal
+    Object.keys(gruposNormales).forEach((grupo, idx) => {
+        accordionCapas.appendChild(crearAccordionItem(grupo, idx, gruposNormales[grupo], 'accordionCapas'));
+    });
 
-        const header = document.createElement('h2');
-        header.className = 'accordion-header';
-        header.id = 'heading' + idx;
-
-        const button = document.createElement('button');
-        button.className = 'accordion-button collapsed fw-bold text-white';
-        button.type = 'button';
-        button.setAttribute('data-bs-toggle', 'collapse');
-        button.setAttribute('data-bs-target', '#collapse' + idx);
-        button.setAttribute('aria-expanded', 'false');
-        button.setAttribute('aria-controls', 'collapse' + idx);
-        button.style.backgroundColor = '#34495e';
-        button.textContent = grupo;
-
-        header.appendChild(button);
-        item.appendChild(header);
-
-        const collapse = document.createElement('div');
-        collapse.id = 'collapse' + idx;
-        collapse.className = 'accordion-collapse collapse';
-        collapse.setAttribute('aria-labelledby', 'heading' + idx);
-        collapse.setAttribute('data-bs-parent', '#accordionCapas');
-
-        const body = document.createElement('div');
-        body.className = 'accordion-body';
-
-        grupos[grupo].forEach(capa => {
-            const label = document.createElement('label');
-            label.style.display = 'block';
-            label.style.cursor = 'pointer';
-            label.style.marginBottom = '5px';
-
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.value = capa.id;
-            checkbox.style.marginRight = '5px';
-
-            checkbox.addEventListener('change', function() {
-                if (this.checked) agregarCapa(capa);
-                else quitarCapa(capa.id);
-            });
-
-            label.appendChild(checkbox);
-            label.appendChild(document.createTextNode(capa.nombre));
-            body.appendChild(label);
-        });
-
-        collapse.appendChild(body);
-        item.appendChild(collapse);
-        accordion.appendChild(item);
+    // Construir acordeón de límites
+    Object.keys(gruposLimites).forEach((grupo, idx) => {
+        accordionLimites.appendChild(crearAccordionItem(grupo, idx, gruposLimites[grupo], 'accordionLimites'));
     });
 }
 
@@ -157,7 +180,6 @@ function agregarCapa(capa) {
         .then(res => res.json())
         .then(data => {
             let paneName = 'capasActivas';
-
             if (capa.tipo === 'poligono') {
                 if (capa.nombre.toLowerCase().includes('provincia')) paneName = 'limites_provincias';
                 else if (capa.nombre.toLowerCase().includes('departamento')) paneName = 'limites_departamentos';
